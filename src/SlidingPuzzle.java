@@ -81,8 +81,19 @@ public class SlidingPuzzle {
         System.out.println("Enter the name of the file to be read: ");
         String fileName = scanner.nextLine();
 
+        // Specify the directory where the input files are located
+        String directory = "D:/IIT/2nd Year/Data Structures and Algo/Algo CW/src/";
+        String filePath = directory + fileName;
+
+        // Verify that the file exists
+        File file = new File(filePath);
+        if (!file.exists()) {
+            System.err.println("Error: Input file does not exist.");
+            return;
+        }
+
         List<String> lines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
