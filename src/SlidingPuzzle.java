@@ -1,3 +1,4 @@
+import java.io.*;;
 import java.util.*;
 
 public class SlidingPuzzle {
@@ -75,49 +76,55 @@ public class SlidingPuzzle {
     }
 
     public static void main(String[] args) {
-        char[][] grid = {
-                {'.', '.', '.', '.', '0', '.', '.', 'S'},
-                {'.', '.', '.', '0', '.', '.', '.', '.'},
-                {'0', '.', '.', '.', '.', '0', '.', '0'},
-                {'.', '.', '.', '0', '.', '.', '.', '0'},
-                {'F', '.', '.', '.', '.', '.', '0', '0'},
-                {'.', '0', '.', '.', '.', '.', '.', '.'},
-                {'.', '.', '.', '.', '.', '.', '.', '0'},
-                {'.', '0', '.', '0', '.', '0', '.', '0'},
-                {'0', '.', '.', '.', '.', '.', '.', '.'},
-                {'.', '0', '0', '.', '.', '.', '.', '0'}
-        };
+        Scanner scanner = new Scanner(System.in);
 
-        //Point start = new Point(0, 7);
-        //Point finish = new Point(4, 0);
+        System.out.println("Enter the name of the file to be read: ");
+        String fileName = scanner.nextLine();
+
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading input file: " + e.getMessage());
+            return;
+        }
+
+        int rows = lines.size();
+        int cols = lines.get(0).length();
+        char[][] grid = new char[rows][cols];
 
         Point start = null;
         Point end = null;
 
-        // Finding the start and end points in the grid
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid[0].length; j++) {
-                if (grid[i][j] == 'S') {
+        // Parsing the map
+        for (int i = 0; i < rows; i++) {
+            String line = lines.get(i);
+            for (int j = 0; j < cols; j++) {
+                char ch = line.charAt(j);
+                grid[i][j] = ch;
+                if (ch == 'S') {
                     start = new Point(i, j);
-                } else if (grid[i][j] == 'F') {
+                } else if (ch == 'F') {
                     end = new Point(i, j);
                 }
             }
         }
 
-        // Check if start and end points are found
         if (start == null || end == null) {
             System.out.println("Start or end point not found.");
             return;
         }
 
-
-        // Call Dijkstra's algorithm to find the shortest path length
         int shortestPathLength = dijkstra(grid, start, end);
         if (shortestPathLength != -1) {
             System.out.println("Shortest path length: " + shortestPathLength);
         } else {
             System.out.println("No path found.");
         }
+
+        scanner.close();
     }
 }
