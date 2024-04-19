@@ -1,130 +1,121 @@
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
 import java.util.*;
 
 public class SlidingPuzzle {
-    static class Cell {
-        int row;
-        int col;
+    static final int INF = Integer.MAX_VALUE; // Infinity value
 
-        Cell(int row, int col) {
-            this.row = row;
-            this.col = col;
+    static class Point {
+        int x, y;
+
+        Point(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
     }
 
-    // Define directions: up, down, left, right
-    private static final int[][] DIRECTIONS = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    // Dijkstra's algorithm to find the shortest path between two points on a grid
+    static int dijkstra(char[][] grid, Point start, Point end) {
+        int rows = grid.length;
+        int cols = grid[0].length;
 
-    private static boolean isValidMove(char[][] board, int row, int col) {
-        return row >= 0 && row < board.length && col >= 0 && col < board[0].length;
-    }
+        // Distance array to store shortest distance from start to each cell
+        int[][] distance = new int[rows][cols];
 
-    // The slide method simulates the sliding behaviour of the player.
-    // It starts from the current cell and continues sliding in the specified direction until it encounters a wall or a rock ('0').
-    private static Cell slide(char[][] board, Cell start, int dx, int dy) {
-        int newRow = start.row + dx;
-        int newCol = start.col + dy;
+        // Visited array to keep track of visited cells
+        boolean[][] visited = new boolean[rows][cols];
 
-        while (isValidMove(board, newRow, newCol) && board[newRow][newCol] != '0') {
-            newRow += dx;
-            newCol += dy;
-            if (!isValidMove(board, newRow, newCol)) {
-                break;  // Stop sliding if the new position is invalid
-            }
-            System.out.println("Sliding to cell: (" + newRow + ", " + newCol + ")");
+        // Priority queue to prioritize cells with shortest distance
+        PriorityQueue<Point> pq = new PriorityQueue<>((a, b) -> distance[a.x][a.y] - distance[b.x][b.y]);
+
+        // Directions array to explore neighboring cells (up, down, left, right)
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Up, Down, Left, Right
+
+        // Initialize distances to infinity
+        for (int i = 0; i < rows; i++) {
+            Arrays.fill(distance[i], INF);
         }
 
-        // If the new position is invalid or the cell is a wall ('0'), return the last valid position
-        return new Cell(newRow - dx, newCol - dy);
-    }
+        // Distance from start to start is 0
+        distance[start.x][start.y] = 0;
+        pq.offer(start);
 
+        // Dijkstra's algorithm main loop
+        while (!pq.isEmpty()) {
+            Point current = pq.poll();
+            if (visited[current.x][current.y]) continue; // Skip if already visited
+            visited[current.x][current.y] = true;
 
+            // Print vertex information (for debugging)
+            System.out.println("Vertex: (" + current.x + ", " + current.y + ") Distance from source: " + distance[current.x][current.y]);
 
-
-
-    // The findShortestPath method uses the slide method to explore neighboring cells while considering the sliding mechanics.
-    // It slides the player in each direction and adds the resulting cell to the queue if it hasn't been visited before.
-    public static List<Cell> findShortestPath(char[][] board, Cell start, Cell finish) {
-        Map<Cell, Cell> parentMap = new HashMap<>();
-        Queue<Cell> queue = new LinkedList<>();
-        Set<Cell> visited = new HashSet<>();
-
-        queue.offer(start);
-        visited.add(start);
-        System.out.println("Marked as visited: (" + start.row + ", " + start.col + ")");
-
-        while (!queue.isEmpty()) {
-            Cell current = queue.poll();
-
-            System.out.println("Exploring cell: (" + current.row + ", " + current.col + ")");
-
-            if (current.row == finish.row && current.col == finish.col) {
-                // Reconstruct path
-                System.out.println("Path found!");
-
-                List<Cell> path = new ArrayList<>();
-                while (current != null) {
-                    path.add(current);
-                    current = parentMap.get(current);
-                }
-                Collections.reverse(path);
-                return path;
+            // If we reach the end point, return the distance
+            if (current.x == end.x && current.y == end.y) {
+                return distance[end.x][end.y];
             }
 
-            for (int[] direction : DIRECTIONS) {
-                Cell newPosition = slide(board, current, direction[0], direction[1]);
-                if (!visited.contains(newPosition)) {
-                    queue.offer(newPosition);
-                    visited.add(newPosition);
-                    parentMap.put(newPosition, current);
-                    System.out.println("Marked as visited: (" + newPosition.row + ", " + newPosition.col + ")");
+            // Explore neighbors
+            for (int[] dir : directions) {
+                int newX = current.x + dir[0];
+                int newY = current.y + dir[1];
+
+                // Check if the neighbor is within grid bounds and is not a wall
+                if (newX >= 0 && newX < rows && newY >= 0 && newY < cols && grid[newX][newY] != '0') {
+                    // Calculate the weight of the edge (movement cost)
+                    int weight = grid[newX][newY] == '.' ? 1 : 0; // Non-wall cells have weight 1
+
+                    // Calculate the new distance from start to neighbor
+                    if (distance[current.x][current.y] + weight < distance[newX][newY]) { // If the new distance is shorter than the current distance to the neighbor, // update the distance and add the neighbor to the priority queue
+                        distance[newX][newY] = distance[current.x][current.y] + weight;
+                        pq.offer(new Point(newX, newY));
+                    }
                 }
             }
         }
 
-        System.out.println("No path found.");
-
-        return Collections.emptyList();  // No path found
+        return -1; // No path found
     }
-
 
     public static void main(String[] args) {
-
-        // Example board
-        char[][] board = {
-                ".....0...S".toCharArray(),
-                "....0.....".toCharArray(),
-                "0.....0..0".toCharArray(),
-                "...0....0.".toCharArray(),
-                ".F......0.".toCharArray(),
-                ".0........".toCharArray(),
-                ".......0..".toCharArray(),
-                ".0.0..0..0".toCharArray(),
-                "0.........".toCharArray(),
-                ".00.....0.".toCharArray()
+        char[][] grid = {
+                {'.', '.', '.', '.', '0', '.', '.', 'S'},
+                {'.', '.', '.', '0', '.', '.', '.', '.'},
+                {'0', '.', '.', '.', '.', '0', '.', '0'},
+                {'.', '.', '.', '0', '.', '.', '.', '0'},
+                {'F', '.', '.', '.', '.', '.', '0', '0'},
+                {'.', '0', '.', '.', '.', '.', '.', '.'},
+                {'.', '.', '.', '.', '.', '.', '.', '0'},
+                {'.', '0', '.', '0', '.', '0', '.', '0'},
+                {'0', '.', '.', '.', '.', '.', '.', '.'},
+                {'.', '0', '0', '.', '.', '.', '.', '0'}
         };
 
-        Cell start = null;
-        Cell finish = null;
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[0].length; j++) {
-                if (board[i][j] == 'S') {
-                    start = new Cell(i, j);
-                } else if (board[i][j] == 'F') {
-                    finish = new Cell(i, j);
+        //Point start = new Point(0, 7);
+        //Point finish = new Point(4, 0);
+
+        Point start = null;
+        Point end = null;
+
+        // Finding the start and end points in the grid
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                if (grid[i][j] == 'S') {
+                    start = new Point(i, j);
+                } else if (grid[i][j] == 'F') {
+                    end = new Point(i, j);
                 }
             }
         }
 
-        List<Cell> path = findShortestPath(board, start, finish);
-        if (!path.isEmpty()) {
-            System.out.println("Shortest path found:");
-            for (Cell cell : path) {
-                System.out.println("(" + cell.row + ", " + cell.col + ")");
-            }
+        // Check if start and end points are found
+        if (start == null || end == null) {
+            System.out.println("Start or end point not found.");
+            return;
+        }
+
+
+        // Call Dijkstra's algorithm to find the shortest path length
+        int shortestPathLength = dijkstra(grid, start, end);
+        if (shortestPathLength != -1) {
+            System.out.println("Shortest path length: " + shortestPathLength);
         } else {
             System.out.println("No path found.");
         }
