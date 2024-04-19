@@ -22,19 +22,31 @@ public class SlidingPuzzle {
         return row >= 0 && row < board.length && col >= 0 && col < board[0].length;
     }
 
+    // The slide method simulates the sliding behaviour of the player.
+    // It starts from the current cell and continues sliding in the specified direction until it encounters a wall or a rock ('0').
     private static Cell slide(char[][] board, Cell start, int dx, int dy) {
         int newRow = start.row + dx;
         int newCol = start.col + dy;
 
         while (isValidMove(board, newRow, newCol) && board[newRow][newCol] != '0') {
-            start.row = newRow;
-            start.col = newCol;
             newRow += dx;
             newCol += dy;
+            if (!isValidMove(board, newRow, newCol)) {
+                break;  // Stop sliding if the new position is invalid
+            }
+            System.out.println("Sliding to cell: (" + newRow + ", " + newCol + ")");
         }
-        return start;
+
+        // If the new position is invalid or the cell is a wall ('0'), return the last valid position
+        return new Cell(newRow - dx, newCol - dy);
     }
 
+
+
+
+
+    // The findShortestPath method uses the slide method to explore neighboring cells while considering the sliding mechanics.
+    // It slides the player in each direction and adds the resulting cell to the queue if it hasn't been visited before.
     public static List<Cell> findShortestPath(char[][] board, Cell start, Cell finish) {
         Map<Cell, Cell> parentMap = new HashMap<>();
         Queue<Cell> queue = new LinkedList<>();
@@ -42,6 +54,7 @@ public class SlidingPuzzle {
 
         queue.offer(start);
         visited.add(start);
+        System.out.println("Marked as visited: (" + start.row + ", " + start.col + ")");
 
         while (!queue.isEmpty()) {
             Cell current = queue.poll();
@@ -61,36 +74,22 @@ public class SlidingPuzzle {
                 return path;
             }
 
-            for (int[] direction : DIRECTIONS){
-                Cell newPosition = slide(board,  new Cell(current.row, current.col), direction[0], direction[1] );
-                if(!visited.contains(newPosition)){
+            for (int[] direction : DIRECTIONS) {
+                Cell newPosition = slide(board, current, direction[0], direction[1]);
+                if (!visited.contains(newPosition)) {
                     queue.offer(newPosition);
                     visited.add(newPosition);
                     parentMap.put(newPosition, current);
-
-                }
-
+                    System.out.println("Marked as visited: (" + newPosition.row + ", " + newPosition.col + ")");
                 }
             }
-
-            /*for (int[] direction : DIRECTIONS) {
-                int[] newPosition = slide(board, current.row, current.col, direction[0], direction[1]);
-                int newRow = newPosition[0];
-                int newCol = newPosition[1];
-                Cell neighbor = new Cell(newRow, newCol);
-                if (!visited.contains(neighbor)) {
-                    queue.offer(neighbor);
-                    visited.add(neighbor);
-                    parentMap.put(neighbor, current);
-                    System.out.println("Adding neighbor: (" + newRow + ", " + newCol + ")");
-                }
-            }
-        }*/
+        }
 
         System.out.println("No path found.");
 
         return Collections.emptyList();  // No path found
     }
+
 
     public static void main(String[] args) {
 
