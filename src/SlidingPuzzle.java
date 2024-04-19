@@ -14,8 +14,7 @@ public class SlidingPuzzle {
     }
 
     // Dijkstra's algorithm to find the shortest path between two points on a grid
-    // Dijkstra's algorithm to find the shortest path between two points on a grid
-    static List<Point> dijkstra(char[][] grid, Point start, Point end) {
+    static List<String> dijkstra(char[][] grid, Point start, Point end) {
         int rows = grid.length;
         int cols = grid[0].length;
 
@@ -33,6 +32,7 @@ public class SlidingPuzzle {
 
         // Directions array to explore neighboring cells (up, down, left, right)
         int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Up, Down, Left, Right
+        String[] directionNames = {"up", "down", "left", "right"};
 
         // Initialize distances to infinity
         for (int i = 0; i < rows; i++) {
@@ -51,19 +51,19 @@ public class SlidingPuzzle {
 
             // If we reach the end point, reconstruct the path and return
             if (current.x == end.x && current.y == end.y) {
-                List<Point> path = new ArrayList<>();
+                List<String> pathSteps = new ArrayList<>();
                 while (current != null) {
-                    path.add(current);
+                    pathSteps.add("(" + current.x + "," + current.y + ")");
                     current = parent[current.x][current.y];
                 }
-                Collections.reverse(path);
-                return path;
+                Collections.reverse(pathSteps);
+                return pathSteps;
             }
 
             // Explore neighbors
-            for (int[] dir : directions) {
-                int newX = current.x + dir[0];
-                int newY = current.y + dir[1];
+            for (int i = 0; i < directions.length; i++) {
+                int newX = current.x + directions[i][0];
+                int newY = current.y + directions[i][1];
 
                 // Check if the neighbor is within grid bounds and is not a wall
                 if (newX >= 0 && newX < rows && newY >= 0 && newY < cols && grid[newX][newY] != '0') {
@@ -71,7 +71,9 @@ public class SlidingPuzzle {
                     int weight = grid[newX][newY] == '.' ? 1 : 0; // Non-wall cells have weight 1
 
                     // Calculate the new distance from start to neighbor
-                    if (distance[current.x][current.y] + weight < distance[newX][newY]) { // If the new distance is shorter than the current distance to the neighbor, // update the distance and add the neighbor to the priority queue
+                    if (distance[current.x][current.y] + weight < distance[newX][newY]) {
+                        // If the new distance is shorter than the current distance to the neighbor,
+                        // update the distance and add the neighbor to the priority queue
                         distance[newX][newY] = distance[current.x][current.y] + weight;
                         pq.offer(new Point(newX, newY));
                         parent[newX][newY] = current; // Update parent
@@ -138,18 +140,35 @@ public class SlidingPuzzle {
             return;
         }
 
-        List<Point> shortestPath = dijkstra(grid, start, end);
+        List<String> shortestPath = dijkstra(grid, start, end);
         if (shortestPath != null) {
             System.out.println("Shortest path length: " + shortestPath.size());
             System.out.println("Steps:");
+            Point current = start;
             for (int i = 0; i < shortestPath.size(); i++) {
-                Point step = shortestPath.get(i);
-                System.out.println((i + 1) + ". Move to (" + step.x + ", " + step.y + ")");
+                String[] step = shortestPath.get(i).split(",");
+                int x = Integer.parseInt(step[0].substring(1));
+                int y = Integer.parseInt(step[1].substring(0, step[1].length() - 1));
+                System.out.println((i + 1) + ". Move " + getDirection(current, new Point(x, y)) + " to (" + x + ", " + y + ")");
+                current = new Point(x, y);
             }
         } else {
             System.out.println("No path found.");
         }
 
         scanner.close();
+    }
+
+    // Helper method to determine the direction of movement
+    private static String getDirection(Point current, Point next) {
+        if (current.x < next.x) {
+            return "down";
+        } else if (current.x > next.x) {
+            return "up";
+        } else if (current.y < next.y) {
+            return "right";
+        } else {
+            return "left";
+        }
     }
 }
