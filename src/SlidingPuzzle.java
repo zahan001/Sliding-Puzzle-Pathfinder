@@ -14,7 +14,8 @@ public class SlidingPuzzle {
     }
 
     // Dijkstra's algorithm to find the shortest path between two points on a grid
-    static int dijkstra(char[][] grid, Point start, Point end) {
+    // Dijkstra's algorithm to find the shortest path between two points on a grid
+    static List<Point> dijkstra(char[][] grid, Point start, Point end) {
         int rows = grid.length;
         int cols = grid[0].length;
 
@@ -23,6 +24,9 @@ public class SlidingPuzzle {
 
         // Visited array to keep track of visited cells
         boolean[][] visited = new boolean[rows][cols];
+
+        // Parent array to keep track of the path
+        Point[][] parent = new Point[rows][cols];
 
         // Priority queue to prioritize cells with shortest distance
         PriorityQueue<Point> pq = new PriorityQueue<>((a, b) -> distance[a.x][a.y] - distance[b.x][b.y]);
@@ -45,12 +49,15 @@ public class SlidingPuzzle {
             if (visited[current.x][current.y]) continue; // Skip if already visited
             visited[current.x][current.y] = true;
 
-            // Print vertex information (for debugging)
-            System.out.println("Vertex: (" + current.x + ", " + current.y + ") Distance from source: " + distance[current.x][current.y]);
-
-            // If we reach the end point, return the distance
+            // If we reach the end point, reconstruct the path and return
             if (current.x == end.x && current.y == end.y) {
-                return distance[end.x][end.y];
+                List<Point> path = new ArrayList<>();
+                while (current != null) {
+                    path.add(current);
+                    current = parent[current.x][current.y];
+                }
+                Collections.reverse(path);
+                return path;
             }
 
             // Explore neighbors
@@ -67,13 +74,15 @@ public class SlidingPuzzle {
                     if (distance[current.x][current.y] + weight < distance[newX][newY]) { // If the new distance is shorter than the current distance to the neighbor, // update the distance and add the neighbor to the priority queue
                         distance[newX][newY] = distance[current.x][current.y] + weight;
                         pq.offer(new Point(newX, newY));
+                        parent[newX][newY] = current; // Update parent
                     }
                 }
             }
         }
 
-        return -1; // No path found
+        return null; // No path found
     }
+
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -129,9 +138,14 @@ public class SlidingPuzzle {
             return;
         }
 
-        int shortestPathLength = dijkstra(grid, start, end);
-        if (shortestPathLength != -1) {
-            System.out.println("Shortest path length: " + shortestPathLength);
+        List<Point> shortestPath = dijkstra(grid, start, end);
+        if (shortestPath != null) {
+            System.out.println("Shortest path length: " + shortestPath.size());
+            System.out.println("Steps:");
+            for (int i = 0; i < shortestPath.size(); i++) {
+                Point step = shortestPath.get(i);
+                System.out.println((i + 1) + ". Move to (" + step.x + ", " + step.y + ")");
+            }
         } else {
             System.out.println("No path found.");
         }
