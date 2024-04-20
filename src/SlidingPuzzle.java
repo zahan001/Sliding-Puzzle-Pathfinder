@@ -2,12 +2,12 @@ import java.io.*;;
 import java.util.*;
 
 public class SlidingPuzzle {
-    static final int INF = Integer.MAX_VALUE; // Infinity value
+    static final int INF = Integer.MAX_VALUE; // Infinity value for distance initialization
 
-    static class Point {
+    static class Point { // Class representing a point (cell) on the grid
         int x, y;
 
-        Point(int x, int y) {
+        Point(int x, int y) { // Constructor to initialize the coordinates of the point
             this.x = x;
             this.y = y;
         }
@@ -86,25 +86,31 @@ public class SlidingPuzzle {
     }
 
 
+    // Main method to execute the program
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
+        // Prompt user for the name of the file to be read
         System.out.println("Enter the name of the file to be read: ");
         String fileName = scanner.nextLine();
+        scanner.close(); // Close the scanner
 
-        // Specify the directory where the input files are located
-        String directory = "D:/IIT/2nd Year/Data Structures and Algo/Algo CW/src/";
-        String filePath = directory + fileName;
+        // Specify the relative directory where the input files are located
+        //String directory = "/Algo CW/src/";
+        String filePath = "src/" + fileName;
 
         // Verify that the file exists
         File file = new File(filePath);
+        // Verify that the file exists
         if (!file.exists()) {
-            System.err.println("Error: Input file does not exist.");
+            System.err.println("Error: Input file does not exist. File path: " + file.getAbsolutePath());
             return;
         }
 
+
+        // Read the contents of the file and store them in a list
         List<String> lines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
@@ -114,14 +120,16 @@ public class SlidingPuzzle {
             return;
         }
 
+        // Determine the dimensions of the grid
         int rows = lines.size();
         int cols = lines.get(0).length();
         char[][] grid = new char[rows][cols];
 
+        // Initialize start and end points
         Point start = null;
         Point end = null;
 
-        // Parsing the map
+        // Parsing the map and initializing the grid
         for (int i = 0; i < rows; i++) {
             String line = lines.get(i);
             for (int j = 0; j < cols; j++) {
@@ -135,14 +143,18 @@ public class SlidingPuzzle {
             }
         }
 
+        // Check if start and end points were found
         if (start == null || end == null) {
             System.out.println("Start or end point not found.");
             return;
         }
 
+        // Perform Dijkstra's algorithm to find the shortest path
         List<String> shortestPath = dijkstra(grid, start, end);
         if (shortestPath != null) {
+            // Output the length of the shortest path
             System.out.println("Shortest path length: " + shortestPath.size());
+            // Output the steps of the solution
             System.out.println("Steps:");
             Point current = start;
             for (int i = 0; i < shortestPath.size(); i++) {
@@ -153,10 +165,10 @@ public class SlidingPuzzle {
                 current = new Point(x, y);
             }
         } else {
-            System.out.println("No path found.");
+            System.out.println("No path found."); // No path found print this message
         }
 
-        scanner.close();
+        //scanner.close(); // Close the scanner
     }
 
     // Helper method to determine the direction of movement
