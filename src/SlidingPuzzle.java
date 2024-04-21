@@ -36,7 +36,6 @@ public class SlidingPuzzle {
 
         // Directions array to explore neighboring cells (up, down, left, right)
         int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // Up, Down, Left, Right
-        String[] directionNames = {"up", "down", "left", "right"};
 
         // Initialize distances to infinity
         for (int i = 0; i < rows; i++) {
@@ -65,23 +64,23 @@ public class SlidingPuzzle {
             }
 
             // Explore neighbors
-            for (int i = 0; i < directions.length; i++) {
-                int newX = current.x + directions[i][0];
-                int newY = current.y + directions[i][1];
-
-                // Check if the neighbor is within grid bounds and is not a wall
-                if (newX >= 0 && newX < rows && newY >= 0 && newY < cols && grid[newX][newY] != '0') {
-                    // Calculate the weight of the edge (movement cost)
-                    int weight = grid[newX][newY] == '.' ? 1 : 0; // Non-wall cells have weight 1
-
-                    // Calculate the new distance from start to neighbor
-                    if (distance[current.x][current.y] + weight < distance[newX][newY]) {
-                        // If the new distance is shorter than the current distance to the neighbor,
-                        // update the distance and add the neighbor to the priority queue
-                        distance[newX][newY] = distance[current.x][current.y] + weight;
-                        pq.offer(new Point(newX, newY));
-                        parent[newX][newY] = current; // Update parent
-                    }
+            for (int[] dir : directions) {
+                int newX = current.x + dir[0];
+                int newY = current.y + dir[1];
+                // Keep sliding until hitting a wall or a rock
+                while (newX >= 0 && newX < rows && newY >= 0 && newY < cols && grid[newX][newY] != '0') {
+                    newX += dir[0];
+                    newY += dir[1];
+                }
+                newX -= dir[0]; // Backtrack one step to the last valid position
+                newY -= dir[1];
+                int weight = Math.abs(newX - current.x) + Math.abs(newY - current.y); // Calculate movement cost
+                if (distance[current.x][current.y] + weight < distance[newX][newY]) {
+                    // If the new distance is shorter than the current distance to the neighbor,
+                    // update the distance and add the neighbor to the priority queue
+                    distance[newX][newY] = distance[current.x][current.y] + weight;
+                    pq.offer(new Point(newX, newY));
+                    parent[newX][newY] = current; // Update parent
                 }
             }
         }
@@ -90,26 +89,29 @@ public class SlidingPuzzle {
     }
 
 
+
     // Main method to execute the program
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // Prompt user for the name of the file to be read
-        System.out.println("Enter the name of the file to be read: ");
-        String fileName = scanner.nextLine();
-        scanner.close(); // Close the scanner
+        String filePath = "";
+        File file = null;
 
-        // Specify the relative directory where the input files are located
-        //String directory = "/Algo CW/src/";
-        String filePath = "src/" + fileName;
+        while (file == null) {
+            // Prompt user for the name of the file to be read
+            System.out.println("Enter the name of the file to be read: ");
+            String fileName = scanner.nextLine();
+            filePath = "src/" + fileName;
 
-        // Verify that the file exists
-        File file = new File(filePath);
-        // Verify that the file exists
-        if (!file.exists()) {
-            System.err.println("Error: Input file does not exist. File path: " + file.getAbsolutePath());
-            return;
+            // Verify that the file exists
+            file = new File(filePath);
+            if (!file.exists()) { // If the file does not exist, display an error message and prompt the user to enter a valid file name
+                System.err.println("Error: Input file does not exist. Please enter a valid file name.");
+                file = null; // Reset file to null to continue the loop
+            }
         }
+
+        long startTime = System.currentTimeMillis(); // Record start time
 
 
         // Read the contents of the file and store them in a list
@@ -136,7 +138,7 @@ public class SlidingPuzzle {
         // Parsing the map and initializing the grid
         for (int i = 0; i < rows; i++) {
             String line = lines.get(i);
-            for (int j = 0; j < cols; j++) {
+            for (int j = 0; j < cols && j < line.length(); j++) { // Add check for line length
                 char ch = line.charAt(j);
                 grid[i][j] = ch;
                 if (ch == 'S') {
@@ -156,8 +158,8 @@ public class SlidingPuzzle {
         // Perform Dijkstra's algorithm to find the shortest path
         List<String> shortestPath = dijkstra(grid, start, end);
         if (shortestPath != null) {
-            // Output the length of the shortest path
-            System.out.println("Shortest path length: " + shortestPath.size());
+            // Output the path found message
+            System.out.println("Path found!");
             // Output the steps of the solution
             System.out.println("Steps:");
             Point current = start;
@@ -177,7 +179,8 @@ public class SlidingPuzzle {
             System.out.println("No path found."); // No path found print this message
         }
 
-        //scanner.close(); // Close the scanner
+        scanner.close(); // Close the scanner
+
     }
 
     // Helper method to determine the direction of movement
