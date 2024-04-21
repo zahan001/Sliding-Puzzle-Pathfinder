@@ -1,3 +1,7 @@
+// IIT Student Number: 20220255
+// Student Name: Sahan Madhawa Jayaweera
+// UoW id: w2002471 | UoW number: 2002471
+
 import java.io.*;;
 import java.util.*;
 
@@ -161,8 +165,11 @@ public class SlidingPuzzle {
                 String[] step = shortestPath.get(i).split(",");
                 int x = Integer.parseInt(step[0].substring(1));
                 int y = Integer.parseInt(step[1].substring(0, step[1].length() - 1));
-                String direction = getDirection(current, new Point(x, y));
-                System.out.println((i + 1) + ". " + (i == 0 ? "Start at" : "Move " + direction + " to") + " (" + current.x + "," + current.y + ")");
+                String direction = getDirection(current, new Point(x, y));if (i == 0) {
+                    System.out.println("1. Start at (" + current.x + "," + current.y + ")");
+                } else {
+                    System.out.println((i + 1) + ". Move " + direction + " to (" + x + "," + y + ")");
+                }
                 current = new Point(x, y);
             }
             System.out.println((shortestPath.size() + 1) + ". Done!");
