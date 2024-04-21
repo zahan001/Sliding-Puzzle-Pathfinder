@@ -161,9 +161,11 @@ public class SlidingPuzzle {
                 String[] step = shortestPath.get(i).split(",");
                 int x = Integer.parseInt(step[0].substring(1));
                 int y = Integer.parseInt(step[1].substring(0, step[1].length() - 1));
-                System.out.println((i + 1) + ". Move " + getDirection(current, new Point(x, y)) + " to (" + x + ", " + y + ")");
+                String direction = getDirection(current, new Point(x, y));
+                System.out.println((i + 1) + ". " + (i == 0 ? "Start at" : "Move " + direction + " to") + " (" + current.x + "," + current.y + ")");
                 current = new Point(x, y);
             }
+            System.out.println((shortestPath.size() + 1) + ". Done!");
         } else {
             System.out.println("No path found."); // No path found print this message
         }
